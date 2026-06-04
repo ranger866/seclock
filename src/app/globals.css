@@ -1,4 +1,24 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* memaksa semua input & select menjadi teks hitam dengan garis batas yang jelas */
+@layer base {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  select {
+    @apply text-gray-900 border-gray-400 bg-white;
+  }
+  
+  /* Khusus untuk teks bayangan (placeholder) agar tetap abu-abu tapi bisa dibaca */
+  input::placeholder {
+    @apply text-gray-500;
+  }
+}
 
 :root {
   --background: #ffffff;

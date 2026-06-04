@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { dbQuery } from "../../../lib/db";
 
-// GET: Mengambil daftar jadwal perkuliahan (Menggabungkan tabel rooms dan users)
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -11,15 +10,17 @@ export async function GET() {
       return NextResponse.json({ success: false, message: "Tidak terotorisasi" }, { status: 401 });
     }
 
-    // Melakukan JOIN SQL untuk mendapatkan nama ruangan dan nama dosen penanggung jawab asli
+    // Perbaikan: JOIN ganda ke tabel users untuk dosen dan ketua kelas (opsional/LEFT JOIN)
     const query = `
       SELECT 
-        s.id, s.day, s.start_time, s.end_time, s.subject_name,
-        r.room_name, r.location,
-        u.name as PIC_name, u.identifier as PIC_id
-      FROM schedules s, rooms r, users u
-      WHERE s.room_id = r.id 
-        AND s.user_id = u.id
+        s.id, s.day, s.start_time, s.end_time, s.subject_name, s.door_status, s.dosen_id, s.ketua_kelas_id,
+        r.room_name, r.location, r.esp_id,
+        d.name as dosen_name, d.identifier as dosen_identifier,
+        k.name as ketua_name, k.identifier as ketua_identifier
+      FROM schedules s
+      JOIN rooms r ON s.room_id = r.id 
+      JOIN users d ON s.dosen_id = d.id
+      LEFT JOIN users k ON s.ketua_kelas_id = k.id
       ORDER BY FIELD(s.day, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), s.start_time ASC
     `;
     
@@ -31,7 +32,6 @@ export async function GET() {
   }
 }
 
-// POST: Membuat jadwal baru (Hanya Admin)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -40,15 +40,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { room_id, user_id, day, start_time, end_time, subject_name } = body;
+    const { room_id, dosen_id, ketua_kelas_id, day, start_time, end_time, subject_name } = body;
 
-    if (!room_id || !user_id || !day || !start_time || !end_time || !subject_name) {
-      return NextResponse.json({ success: false, message: "Semua input jadwal wajib diisi!" }, { status: 400 });
+    if (!room_id || !dosen_id || !day || !start_time || !end_time || !subject_name) {
+      return NextResponse.json({ success: false, message: "Input wajib belum diisi!" }, { status: 400 });
     }
 
+    // Nilai default door_status adalah 0 (Terkunci)
     await dbQuery(
-      "INSERT INTO schedules (room_id, user_id, day, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?, ?)",
-      [room_id, user_id, day, start_time, end_time, subject_name]
+      "INSERT INTO schedules (room_id, dosen_id, ketua_kelas_id, day, start_time, end_time, subject_name, door_status) VALUES (?, ?, ?, ?, ?, ?, ?, 0)",
+      [room_id, dosen_id, ketua_kelas_id || null, day, start_time, end_time, subject_name]
     );
 
     return NextResponse.json({ success: true, message: "Jadwal berhasil didaftarkan." });

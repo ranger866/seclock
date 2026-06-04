@@ -57,7 +57,9 @@ export default function LogsPage() {
         <p className="mt-1 text-sm text-gray-500">Riwayat lengkap aktivitas pembukaan pintu oleh pengguna dan sistem.</p>
       </div>
 
-      <div className="overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
+      
+      {/* Tampilan Desktop: Tabel */}
+      <div className="hidden md:block overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
         <table className="w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
             <tr>
@@ -96,6 +98,39 @@ export default function LogsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Tampilan Mobile: Kartu */}
+      <div className="md:hidden space-y-3 mb-20">
+        {isLoading ? (
+          <div className="text-center py-10 text-gray-500">Memuat...</div>
+        ) : logs.length > 0 ? (
+          logs.map((log) => (
+            <div key={log.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center">
+                  {log.status === "success" ? (
+                    <ShieldCheck className="w-4 h-4 mr-2 text-green-500" />
+                  ) : (
+                    <XCircle className="w-4 h-4 mr-2 text-red-500" />
+                  )}
+                  <span className={`font-bold ${log.status === "success" ? "text-green-700" : "text-red-700"}`}>
+                    {log.action}
+                  </span>
+                </div>
+                <span className="text-[10px] text-gray-400 font-mono">{formatDateTime(log.accessed_at)}</span>
+              </div>
+              
+              <div className="text-sm border-t pt-2 mt-1">
+                <p className="font-medium text-gray-900">{log.operator_name}</p>
+                <p className="text-xs text-gray-500">Ruangan: {log.room_name}</p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-10 text-gray-500">Belum ada riwayat aktivitas.</div>
+        )}
+      </div>
+      
     </DashboardLayout>
   );
 }

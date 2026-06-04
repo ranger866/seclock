@@ -3,6 +3,7 @@ import Link from "next/link";
 import { 
   LayoutDashboard, 
   CalendarDays, 
+  Clock, // <-- Ikon baru untuk Reservasi
   DoorClosed, 
   Users, 
   History,
@@ -18,10 +19,11 @@ export interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ userRole, className, onLogout }) => {
-  // Definisi semua kemungkinan menu
+  // Definisi semua kemungkinan menu yang sudah dipisah
   const menuItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "dosen", "mahasiswa", "operator"] },
-    { name: "Jadwal & Reservasi", href: "/dashboard/schedule", icon: CalendarDays, roles: ["admin", "dosen", "mahasiswa"] },
+    { name: "Jadwal Perkuliahan", href: "/dashboard/schedule", icon: CalendarDays, roles: ["admin", "dosen", "mahasiswa"] },
+    { name: "Reservasi Ruangan", href: "/dashboard/reservations", icon: Clock, roles: ["admin", "dosen", "mahasiswa"] },
     { name: "Manajemen Ruangan", href: "/dashboard/rooms", icon: DoorClosed, roles: ["admin"] },
     { name: "Manajemen Pengguna", href: "/dashboard/users", icon: Users, roles: ["admin"] },
     { name: "Log Akses", href: "/dashboard/logs", icon: History, roles: ["admin"] },

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { FAB } from "@/components/atoms/FloatingButtonAction";
 import { DashboardLayout } from "../../../components/templates/DashboardLayout";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import { Role } from "../../../types";
@@ -137,12 +138,20 @@ export default function UsersPage() {
           <h2 className="text-2xl font-bold text-gray-900">Data Pengguna</h2>
           <p className="mt-1 text-sm text-gray-500">Kelola akses sistem untuk Dosen, Mahasiswa, dan Admin.</p>
         </div>
-        <button onClick={handleOpenAddModal} className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+
+        {/* Tombol Desktop */}
+        <button 
+          onClick={handleOpenAddModal} 
+          className="hidden md:flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+        >
           <Plus className="w-4 h-4 mr-2" /> Tambah Pengguna
         </button>
+
+        {/* FAB Mobile */}
+        <FAB onClick={handleOpenAddModal} />
       </div>
 
-      <div className="overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="hidden md:block overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
         <table className="w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
             <tr>
@@ -176,6 +185,37 @@ export default function UsersPage() {
         </table>
       </div>
 
+      {/* Tampilan Mobile: Kartu */}
+      <div className="md:hidden space-y-3 mb-20">
+        {isLoading ? (
+          <div className="text-center py-10 text-gray-500">Memuat...</div>
+        ) : users.length > 0 ? (
+          users.map((u) => (
+            <div key={u.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
+              <div>
+                <p className="font-bold text-gray-900">{u.name}</p>
+                <p className="text-xs text-gray-500">{u.identifier}</p>
+                <span className="inline-block mt-2 text-[10px] font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded uppercase">
+                  {u.role}
+                </span>
+              </div>
+              
+              {/* Tombol Aksi Mobile */}
+              <div className="flex flex-col gap-2">
+                <button onClick={() => handleOpenEditModal(u)} className="p-2 text-blue-600 bg-blue-50 rounded-lg">
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button onClick={() => u.id && handleDelete(u.id, u.name)} className="p-2 text-red-600 bg-red-50 rounded-lg">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-10 text-gray-500">Belum ada user.</div>
+        )}
+      </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -199,8 +239,9 @@ export default function UsersPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Peran (Role)</label>
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as "admin" | "dosen" | "mahasiswa" })} className="w-full px-3 py-2 border rounded-lg text-sm bg-white">
-                  <option value="mahasiswa">Mahasiswa (Ketua Kelas)</option>
+                  <option value="mahasiswa">Mahasiswa</option>
                   <option value="dosen">Dosen</option>
+                  <option value="operator">Operator (CS)</option>
                   <option value="admin">Administrator</option>
                 </select>
               </div>

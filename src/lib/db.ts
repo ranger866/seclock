@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 
 // Membuat koneksi pool ke TiDB / MySQL
+// db.ts (Versi Serverless-Friendly)
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -12,13 +13,12 @@ export const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: {
-    // Membaca isi file .pem dari sistem, lalu mengubahnya menjadi string
-    ca: process.env.DB_CA 
-      ? fs.readFileSync(path.join(process.cwd(), process.env.DB_CA)).toString()
-      : undefined,
-    rejectUnauthorized: true,
-  },
+  ssl: process.env.DB_CA 
+    ? { 
+        ca: process.env.DB_CA.replace(/\\n/g, '\n'), // Memastikan newline terbaca
+        rejectUnauthorized: true 
+      } 
+    : undefined,
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

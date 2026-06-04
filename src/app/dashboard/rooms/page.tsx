@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { DashboardLayout } from "../../../components/templates/DashboardLayout";
 import { Plus, Edit, Trash2, X } from "lucide-react";
+import { FAB } from "@/components/atoms/FloatingButtonAction";
 import { Role } from "../../../types";
 
 interface RoomData {
@@ -128,19 +129,26 @@ export default function RoomsManagementPage() {
           <h2 className="text-2xl font-bold text-gray-900">Manajemen Ruangan</h2>
           <p className="mt-1 text-sm text-gray-500">Kelola data ruangan dan integrasi perangkat ESP32.</p>
         </div>
-        {/* 🔒 RBAC: Tombol Tambah hanya muncul untuk Admin */}
+
+        {/* 🔒 RBAC: Tombol Tambah & FAB hanya muncul untuk Admin */}
         {isUserAdmin && (
-          <button
-            onClick={handleOpenAddModal}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4 mr-2" /> Tambah Ruangan
-          </button>
+          <>
+            {/* Tombol Desktop */}
+            <button
+              onClick={handleOpenAddModal}
+              className="hidden md:flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Tambah Ruangan
+            </button>
+
+            {/* FAB Mobile (Komponen FAB akan otomatis disembunyikan di desktop via kelas md:hidden) */}
+            <FAB onClick={handleOpenAddModal} />
+          </>
         )}
       </div>
 
       {/* Tabel Data */}
-      <div className="overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="hidden md:block overflow-hidden bg-white border border-gray-200 rounded-xl shadow-sm">
         <table className="w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
             <tr>
@@ -199,6 +207,41 @@ export default function RoomsManagementPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Tampilan Mobile: Kartu */}
+      <div className="md:hidden space-y-3 mb-20">
+        {isLoading ? (
+          <div className="text-center py-10 text-gray-500">Memuat...</div>
+        ) : rooms.length > 0 ? (
+          rooms.map((room) => (
+            <div key={room.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center">
+              <div>
+                <p className="font-bold text-gray-900">{room.room_name}</p>
+                <p className="text-xs text-gray-500">{room.location}</p>
+                <p className="text-[10px] font-mono text-gray-400 mt-1">ID: {room.esp_id || "-"}</p>
+                <div className="mt-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${room.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
+                    {room.status === 'active' ? 'Aktif' : 'Maintenance'}
+                  </span>
+                </div>
+              </div>
+              
+              {isUserAdmin && (
+                <div className="flex flex-col gap-2">
+                  <button onClick={() => handleOpenEditModal(room)} className="p-2 text-blue-600 bg-blue-50 rounded-lg">
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => room.id && handleDelete(room.id, room.room_name)} className="p-2 text-red-600 bg-red-50 rounded-lg">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-10 text-gray-500">Belum ada data ruangan.</div>
+        )}
       </div>
 
       {/* MODAL FORM (TAMBAH / EDIT) */}
