@@ -18,6 +18,15 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ success: false, message: "Data update tidak valid." }, { status: 400 });
     }
 
+    // Ambil ID pengguna dan room_id untuk pencatatan log
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userId = (session.user as any).id;
+    
+    // Cari tahu room_id dari reservasi ini sebelum meng-update
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const reservData = await dbQuery<any[]>("SELECT room_id FROM reservations WHERE id = ?", [id]);
+    const roomId = reservData.length > 0 ? reservData[0].room_id : null;
+
     // Jika ada request untuk mengakhiri sesi (status 'completed')
     if (status === "completed") {
       await dbQuery(
@@ -32,12 +41,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       );
     }
 
+    // =========================================================
+    // ✨ SISTEM LOGGING OTOMATIS ✨
+    // =========================================================
+    if (roomId && door_status !== undefined) {
+      let actionName = "Membuka Pintu (Sekali)";
+      if (door_status === 2) actionName = "Membuka Pintu (Hold Open)";
+      if (door_status === 0) actionName = "Mengunci Pintu (Akhiri Sesi)";
+      
+      await dbQuery(
+        `INSERT INTO access_logs (room_id, user_id, access_type, action, status) VALUES (?, ?, 'reservation', ?, 'success')`,
+        [roomId, userId, actionName]
+      );
+    }
+
     return NextResponse.json({ 
       success: true, 
       message: status === "completed" ? "Sesi diakhiri & pintu terkunci." : "Sinyal pintu berhasil dikirim." 
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Gagal mengontrol pintu.";
+    console.error(error);
     return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }

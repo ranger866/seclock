@@ -11,6 +11,9 @@ async function isAdmin() {
 // PATCH: Untuk mengontrol Hardware (Buka/Tutup/Hold) dari Dashboard
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ success: false, message: "Sesi habis." }, { status: 401 });
+
     const { id } = await params;
     const body = await request.json();
     const { door_status } = body;
@@ -18,9 +21,33 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     // Tidak perlu admin untuk kontrol pintu (Dosen/Mhs butuh akses ini)
     await dbQuery("UPDATE schedules SET door_status = ? WHERE id = ?", [door_status, id]);
 
+    // =========================================================
+    // ✨ SISTEM LOGGING OTOMATIS ✨
+    // =========================================================
+    // Ambil user_id dari sesi
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userId = (session.user as any).id;
+    
+    // Cari tahu room_id dari jadwal ini untuk direkam di log
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const schedData = await dbQuery<any[]>("SELECT room_id FROM schedules WHERE id = ?", [id]);
+    const roomId = schedData.length > 0 ? schedData[0].room_id : null;
+
+    if (roomId && door_status !== undefined) {
+      let actionName = "Membuka Pintu (Sekali)";
+      if (door_status === 2) actionName = "Membuka Pintu (Hold Open)";
+      if (door_status === 0) actionName = "Mengunci Pintu (Selesai)";
+      
+      await dbQuery(
+        `INSERT INTO access_logs (room_id, user_id, access_type, action, status) VALUES (?, ?, 'contract', ?, 'success')`,
+        [roomId, userId, actionName]
+      );
+    }
+
     return NextResponse.json({ success: true, message: "Perintah berhasil dikirim ke pintu." });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Gagal mengontrol pintu";
+    console.error(error);
     return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }
@@ -34,7 +61,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const body = await request.json();
-    // Sesuaikan dengan nama kolom di database (dosen_id, bukan user_id)
     const { room_id, dosen_id, ketua_kelas_id, day, start_time, end_time, subject_name } = body;
 
     await dbQuery(

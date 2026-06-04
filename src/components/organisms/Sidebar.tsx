@@ -1,9 +1,12 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // <-- Import usePathname
 import { 
   LayoutDashboard, 
   CalendarDays, 
-  Clock, // <-- Ikon baru untuk Reservasi
+  Clock, 
   DoorClosed, 
   Users, 
   History,
@@ -19,6 +22,8 @@ export interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ userRole, className, onLogout }) => {
+  const pathname = usePathname(); // <-- Ambil path URL saat ini
+
   // Definisi semua kemungkinan menu yang sudah dipisah
   const menuItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "dosen", "mahasiswa", "operator"] },
@@ -42,16 +47,29 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole, className, onLogout 
       </div>
 
       {/* Navigasi Menu */}
-      <nav className="flex-grow py-6 px-4 space-y-1">
+      <nav className="flex-grow py-6 px-4 space-y-1.5">
         {filteredMenu.map((item) => {
           const Icon = item.icon;
+          
+          // Logika Active State: 
+          // Jika href adalah "/dashboard", kita pakai exact match (===)
+          // Jika href lainnya, kita pakai .startsWith() agar submenu tetap membuat parent-nya aktif
+          const isActive = item.href === '/dashboard' 
+            ? pathname === item.href 
+            : pathname.startsWith(item.href);
+
           return (
             <Link 
               key={item.name} 
               href={item.href}
-              className="flex items-center px-4 py-3 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+              className={cn(
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                isActive 
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" // <-- Gaya saat aktif
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white" // <-- Gaya saat tidak aktif
+              )}
             >
-              <Icon className="w-5 h-5 mr-3" />
+              <Icon className={cn("w-5 h-5 mr-3 transition-colors", isActive ? "text-white" : "text-gray-400")} />
               {item.name}
             </Link>
           );
@@ -62,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ userRole, className, onLogout 
       <div className="p-4 border-t border-gray-800">
         <button 
           onClick={onLogout}
-          className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-400 rounded-lg hover:bg-red-500/10 hover:text-red-300 transition-colors"
+          className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-400 rounded-xl hover:bg-red-500/10 hover:text-red-300 transition-colors"
         >
           <LogOut className="w-5 h-5 mr-3" />
           Keluar Sistem

@@ -105,7 +105,37 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const { id, status } = body;
 
+    // 1. Update status reservasi (Approved/Rejected)
     await dbQuery("UPDATE reservations SET status = ? WHERE id = ?", [status, id]);
+
+    // =========================================================
+    // ✨ SISTEM NOTIFIKASI OTOMATIS ✨
+    // =========================================================
+    // 2. Cari data pemilik reservasi dan nama ruangannya
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const reservData = await dbQuery<any[]>(
+      `SELECT user_id, (SELECT room_name FROM rooms WHERE id = reservations.room_id) as room_name 
+       FROM reservations WHERE id = ?`, 
+      [id]
+    );
+
+    if (reservData.length > 0) {
+      const { user_id, room_name } = reservData[0];
+      
+      // 3. Rangkai pesan notifikasi berdasarkan keputusan Admin
+      const notifTitle = status === "approved" ? "Reservasi Disetujui! 🎉" : "Reservasi Ditolak ❌";
+      const notifMessage = status === "approved" 
+        ? `Pengajuan peminjaman Anda untuk ${room_name} telah disetujui oleh Admin.`
+        : `Maaf, pengajuan peminjaman Anda untuk ${room_name} tidak dapat disetujui saat ini.`;
+      const notifType = status === "approved" ? "success" : "error";
+
+      // 4. Masukkan ke tabel notifikasi agar muncul di bel Dosen/Mahasiswa
+      await dbQuery(
+        "INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)",
+        [user_id, notifTitle, notifMessage, notifType]
+      );
+    }
+
     return NextResponse.json({ success: true, message: `Reservasi berhasil diubah menjadi ${status}` });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Gagal memvalidasi reservasi";
