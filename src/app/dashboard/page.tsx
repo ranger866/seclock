@@ -54,7 +54,7 @@ export default function DashboardPage() {
   }, []);
 
   const dashboardFetcher = async () => {
-    let result = {
+    const result = {
       adminStats: { rooms: 0, schedules: 0, users: 0, todayScheduled: 0, todayAvailable: 0 },
       recentLogs: [] as any[],
       roomsForOperator: [] as any[],

@@ -33,6 +33,7 @@ export default function LogsPage() {
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("id-ID", {
+      timeZone: "Asia/Makassar",
       dateStyle: "medium",
       timeStyle: "medium"
     });
