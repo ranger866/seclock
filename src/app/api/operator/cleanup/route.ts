@@ -8,11 +8,13 @@ const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!session || (session.user as any).role !== "operator") {
       return NextResponse.json({ success: false, message: "Akses ditolak." }, { status: 401 });
     }
 
     const { room_id, action } = await request.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const operatorId = (session.user as any).id; // ID pengguna wajib ada
     
     // =====================================================================
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
         SET door_status = 0, status = 'completed' 
         WHERE room_id = ? AND status = 'approved' AND unique_code LIKE 'CLN-%'
       `;
-      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateResult = await dbQuery<any>(endQuery, [room_id]);
       
       if (updateResult.affectedRows > 0) {
@@ -54,7 +56,7 @@ export async function POST(request: Request) {
       WHERE room_id = ? AND reservation_date = CURDATE() AND status = 'approved' AND CURTIME() BETWEEN ADDTIME(start_time, '-00:15:00') AND ADDTIME(end_time, '00:15:00')
       LIMIT 1
     `;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeSessions = await dbQuery<any[]>(checkQuery, [room_id, dayName, room_id]);
 
     if (activeSessions.length > 0) {

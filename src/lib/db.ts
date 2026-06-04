@@ -1,9 +1,6 @@
 import mysql from "mysql2/promise";
-import fs from "fs";
-import path from "path";
 
 // Membuat koneksi pool ke TiDB / MySQL
-// db.ts (Versi Serverless-Friendly)
 export const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -19,6 +16,8 @@ export const pool = mysql.createPool({
         rejectUnauthorized: true 
       } 
     : undefined,
+  dateStrings: true,
+  timezone: "+08:00"
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

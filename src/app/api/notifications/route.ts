@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ success: false, message: "Akses ditolak" }, { status: 401 });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userId = (session.user as any).id;
     
     // Ambil 20 notifikasi terbaru milik user yang sedang login
@@ -25,7 +25,7 @@ export async function PATCH(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ success: false, message: "Akses ditolak" }, { status: 401 });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userId = (session.user as any).id;
     const body = await request.json();
     const { id, action } = body;

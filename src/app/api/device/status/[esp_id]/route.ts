@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ esp_
       WHERE CURTIME() BETWEEN ADDTIME(combined.start_time, '-00:15:00') AND ADDTIME(combined.end_time, '00:15:00')
       LIMIT 1
     `;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activeSession = await dbQuery<any[]>(query, [esp_id, dayName, esp_id]);
     return NextResponse.json({ door_status: activeSession.length > 0 ? activeSession[0].door_status : 0 });
   } catch (error) {

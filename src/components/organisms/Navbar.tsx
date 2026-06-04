@@ -23,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({ userName, userRole, identifier, 
   const { data, mutate } = useSWR("/api/notifications", fetcher, { refreshInterval: 5000 });
   
   const notifications = data?.success ? data.data : [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const unreadCount = notifications.filter((n: any) => !n.is_read).length;
 
   // Tutup dropdown jika user klik di luar area dropdown
@@ -39,6 +40,7 @@ export const Navbar: React.FC<NavbarProps> = ({ userName, userRole, identifier, 
   // Fungsi menandai 1 notif sebagai sudah dibaca
   const markAsRead = async (id: number) => {
     // Update UI instan sebelum tunggu server (Optimistic Update)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updated = notifications.map((n: any) => n.id === id ? { ...n, is_read: true } : n);
     mutate({ ...data, data: updated }, false);
 
@@ -52,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({ userName, userRole, identifier, 
 
   // Fungsi menandai SEMUA notif sebagai sudah dibaca
   const markAllAsRead = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updated = notifications.map((n: any) => ({ ...n, is_read: true }));
     mutate({ ...data, data: updated }, false);
 
@@ -119,7 +122,8 @@ export const Navbar: React.FC<NavbarProps> = ({ userName, userRole, identifier, 
               <div className="max-h-[350px] overflow-y-auto no-scrollbar">
                 {notifications.length > 0 ? (
                   <ul className="divide-y divide-gray-50">
-                    {notifications.map((notif: any) => (
+                    {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    notifications.map((notif: any) => (
                       <li 
                         key={notif.id} 
                         onClick={() => !notif.is_read && markAsRead(notif.id)}

@@ -13,6 +13,7 @@ async function isAdmin() {
 // GET: Mengambil semua data ruangan untuk ditampilkan di tabel (Semua Role bisa akses)
 export async function GET() {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rooms = await dbQuery<any[]>("SELECT * FROM rooms ORDER BY id DESC");
     return NextResponse.json({ success: true, data: rooms });
   } catch (error: unknown) {

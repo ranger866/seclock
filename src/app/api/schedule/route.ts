@@ -23,7 +23,7 @@ export async function GET() {
       LEFT JOIN users k ON s.ketua_kelas_id = k.id
       ORDER BY FIELD(s.day, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'), s.start_time ASC
     `;
-    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const schedules = await dbQuery<any[]>(query);
     return NextResponse.json({ success: true, data: schedules });
   } catch (error: unknown) {

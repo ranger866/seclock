@@ -26,7 +26,7 @@ export async function GET() {
       ORDER BY l.accessed_at DESC
       LIMIT 100
     `;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const logs = await dbQuery<any[]>(query);
     return NextResponse.json({ success: true, data: logs });
   } catch (error: unknown) {

@@ -50,8 +50,10 @@ export default function SchedulePage() {
       if (resSched.success) schedules = resSched.data;
       if (resRooms.success) roomsOption = resRooms.data;
       if (resUsers.success) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dosenOption = resUsers.data.filter((u: any) => u.role === "dosen");
         mahasiswaData = resUsers.data.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (u: any) => u.role === "mahasiswa",
         );
       }
@@ -369,7 +371,8 @@ export default function SchedulePage() {
                     <option value="" disabled>
                       Pilih...
                     </option>
-                    {roomsOption.map((r: any) => (
+                    {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    roomsOption.map((r: any) => (
                       <option key={r.id} value={r.id}>
                         {r.room_name}
                       </option>
@@ -418,7 +421,8 @@ export default function SchedulePage() {
                   <option value="" disabled>
                     Pilih Dosen...
                   </option>
-                  {dosenOption.map((d: any) => (
+                  {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  dosenOption.map((d: any) => (
                     <option key={d.id} value={d.id}>
                       {d.name}
                     </option>

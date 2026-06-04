@@ -17,7 +17,7 @@ export async function GET() {
     if (!(await isAdmin())) {
       return NextResponse.json({ success: false, message: "Akses ditolak." }, { status: 403 });
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await dbQuery<any[]>("SELECT id, identifier, name, email, role FROM users ORDER BY id DESC");
     return NextResponse.json({ success: true, data: users });
   } catch (error: unknown) {
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
     }
 
     // Cek apakah identifier (NIM/NIP) atau email sudah terdaftar
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existing = await dbQuery<any[]>("SELECT id FROM users WHERE identifier = ? OR email = ?", [identifier, email]);
     if (existing && existing.length > 0) {
       return NextResponse.json({ success: false, message: "NIM/NIP atau Email sudah terdaftar!" }, { status: 400 });

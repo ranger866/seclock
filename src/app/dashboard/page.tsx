@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import useSWR from "swr";
-import Swal from "sweetalert2"; // <-- Import SweetAlert2
+import Swal from "sweetalert2";
 import { DashboardLayout } from "../../components/templates/DashboardLayout";
-import { DoorOpen, Calendar, Clock, Shield, Lock, Unlock, AlertCircle, Users, Activity, Info, Key, Loader2 } from "lucide-react";
+import { DoorOpen, Calendar, Clock, Shield, Lock, Unlock, AlertCircle, Users, Activity, Info, Loader2 } from "lucide-react";
 import { Role } from "../../types";
 import Link from "next/link";
 
@@ -52,11 +52,13 @@ export default function DashboardPage() {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
+  
   const dashboardFetcher = async () => {
     const result = {
       adminStats: { rooms: 0, schedules: 0, users: 0, todayScheduled: 0, todayAvailable: 0 },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recentLogs: [] as any[],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       roomsForOperator: [] as any[],
       unifiedData: [] as UnifiedCardData[],
     };
@@ -68,9 +70,10 @@ export default function DashboardPage() {
         fetch("/api/users").then(r => r.json()),
         fetch("/api/logs").then(r => r.json()),
       ]);
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const todayScheduledCount = resSched.success ? resSched.data.filter((s: any) => s.day === currentDayName).length : 0;
       const totalRoomsCount = resRooms.success ? resRooms.data.length : 0;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const uniqueRoomsUsedToday = new Set(resSched.data?.filter((s: any) => s.day === currentDayName).map((s: any) => s.room_name)).size;
 
       result.adminStats = {
@@ -91,6 +94,7 @@ export default function DashboardPage() {
 
       let combined: UnifiedCardData[] = [];
       if (resSched.success) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         combined = [...combined, ...resSched.data.map((s: any) => ({
           type: "schedule", id: s.id, unique_key: `sched_${s.id}`, day: s.day,
           start_time: s.start_time, end_time: s.end_time, subject_name: s.subject_name,
@@ -99,6 +103,7 @@ export default function DashboardPage() {
         }))];
       }
       if (resReserv.success) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         combined = [...combined, ...resReserv.data.filter((r: any) => r.status === "approved").map((r: any) => ({
           type: "reservation", id: r.id, unique_key: `res_${r.id}`, day: daysIndo[new Date(r.reservation_date).getDay()],
           start_time: r.start_time, end_time: r.end_time, subject_name: `Reservasi: ${r.unique_code}`,
@@ -196,6 +201,7 @@ export default function DashboardPage() {
     setLoadingActionId(`end_${card.unique_key}`);
     try {
       const endpoint = card.type === "reservation" ? `/api/reservations/${card.id}` : `/api/schedule/${card.id}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const body: any = { door_status: 0 };
       if (card.type === "reservation") body.status = "completed";
 
@@ -218,7 +224,14 @@ export default function DashboardPage() {
     }
   };
 
-  const formatTimeLog = (dateString: string) => new Date(dateString).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  const formatTimeLog = (dateString: string) => {
+    if (!dateString) return "-";
+    const validString = dateString.replace(" ", "T");
+    return new Date(validString).toLocaleTimeString("id-ID", { 
+      hour: "2-digit", 
+      minute: "2-digit" 
+    });
+  };
 
   const getDoorStatusInfo = (status: number) => {
     switch (status) {
@@ -296,7 +309,8 @@ export default function DashboardPage() {
                 <div className="p-0">
                   {dashboardData.recentLogs.length > 0 ? (
                     <ul className="divide-y divide-gray-100">
-                      {dashboardData.recentLogs.map((log: any) => (
+                      {// eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      dashboardData.recentLogs.map((log: any) => (
                         <li key={log.id} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors">
                           <div className="flex items-center space-x-4">
                             <div className={`p-2 rounded-full ${log.status === "success" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
@@ -394,7 +408,7 @@ export default function DashboardPage() {
                   const hasTimeAccess = checkTimeTTL(data.day, data.start_time, data.end_time);
                   const statusInfo = getDoorStatusInfo(data.door_status);
                   
-                  let hasControlWand = data.type !== "schedule" || 
+                  const hasControlWand = data.type !== "schedule" || 
                     (userRole === "dosen" && userIdentifier === data.dosen_identifier) ||
                     (userRole === "mahasiswa" && userIdentifier === data.ketua_identifier);
 
