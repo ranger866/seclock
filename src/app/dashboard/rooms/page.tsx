@@ -7,7 +7,6 @@ import { DashboardLayout } from "../../../components/templates/DashboardLayout";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 import { FAB } from "@/components/atoms/FloatingButtonAction";
 import { Role } from "../../../types";
-import React from "react";
 import Swal from "sweetalert2";
 
 interface RoomData {
