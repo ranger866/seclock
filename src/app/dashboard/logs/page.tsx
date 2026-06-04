@@ -32,8 +32,16 @@ export default function LogsPage() {
   const logs: LogData[] = responseData?.success ? responseData.data : [];
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("id-ID", {
-      timeZone: "Asia/Makassar",
+    if (!dateString) return "-";
+
+    // Mencegah "Double +8 Shift":
+    // Hapus huruf 'Z' di akhir agar browser tidak menganggap ini waktu UTC
+    // "2026-06-04T14:00:00.000Z" ---> "2026-06-04T14:00:00.000"
+    const localString = dateString.endsWith('Z') 
+      ? dateString.slice(0, -1) 
+      : dateString;
+
+    return new Date(localString).toLocaleString("id-ID", {
       dateStyle: "medium",
       timeStyle: "medium"
     });
