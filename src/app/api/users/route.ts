@@ -18,7 +18,7 @@ export async function GET() {
       return NextResponse.json({ success: false, message: "Akses ditolak." }, { status: 403 });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const users = await dbQuery<any[]>("SELECT id, identifier, name, email, role FROM users ORDER BY id DESC");
+    const users = await dbQuery<any[]>("SELECT id, identifier, name, email, role FROM users ORDER BY role ASC");
     return NextResponse.json({ success: true, data: users });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Gagal mengambil data pengguna";
