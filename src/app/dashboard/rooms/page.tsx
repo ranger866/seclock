@@ -55,7 +55,7 @@ export default function RoomsManagementPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const url = currentRoomId ? `/api/Rooms/${currentRoomId}` : "/api/users";
+      const url = currentRoomId ? `/api/rooms/${currentRoomId}` : "/api/users";
       const res = await fetch(url, {
         method: currentRoomId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },

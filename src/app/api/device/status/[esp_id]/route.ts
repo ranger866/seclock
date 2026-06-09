@@ -56,7 +56,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ es
 
       // 2. Update Reservations (Langsung JOIN dengan tabel rooms)
       dbQuery(`
-        UPDATE reservations res
+        UPDATE reservations res 
         JOIN rooms r ON res.room_id = r.id
         SET res.door_status = ? 
         WHERE r.esp_id = ? AND res.reservation_date = CURDATE() AND res.status = 'approved'

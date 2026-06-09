@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import useSWR from "swr";
-import Swal from "sweetalert2"; // <-- Import SweetAlert2
+import Swal from "sweetalert2";
 import { DashboardLayout } from "../../../components/templates/DashboardLayout";
 import { Plus, Check, X, Clock, Loader2 } from "lucide-react";
 import { Badge } from "../../../components/atoms/Badge";

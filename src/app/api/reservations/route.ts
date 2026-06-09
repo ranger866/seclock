@@ -9,6 +9,22 @@ export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ success: false, message: "Tidak terotorisasi" }, { status: 401 });
     
+    // AUTO COMPLETE RESERVASI YANG SUDAH LEWAT
+    await dbQuery(`
+      UPDATE reservations
+      SET
+        status = 'completed',
+        door_status = 0
+      WHERE
+        status = 'approved'
+        AND (
+          (reservation_date = CURDATE()
+          AND ADDTIME(end_time, '00:15:00') < CURTIME())
+          OR
+          (reservation_date < CURDATE())
+        )
+    `);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userRole = (session.user as any).role;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +71,21 @@ export async function POST(request: Request) {
 
     if (!room_id || !reservation_date || !start_time || !end_time) {
       return NextResponse.json({ success: false, message: "Lengkapi semua data form." }, { status: 400 });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const roomCheck = await dbQuery<any[]>("SELECT status, room_name FROM rooms WHERE id = ?", [room_id]);
+    
+    if (roomCheck.length === 0) {
+      return NextResponse.json({ success: false, message: "Ruangan tidak ditemukan di sistem." }, { status: 404 });
+    }
+
+    // Jika status ruangan adalah maintenance, tolak mentah-mentah!
+    if (roomCheck[0].status === "maintenance") {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Maaf, pengajuan ditolak. ${roomCheck[0].room_name} sedang dalam masa perbaikan (Maintenance).` 
+      }, { status: 403 }); // 403 Forbidden
     }
 
     // LOGIKA JAM MALAM (NIGHT CURFEW)
